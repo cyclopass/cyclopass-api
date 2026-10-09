@@ -33,9 +33,24 @@ jobs:
       - name: flake8
         run: flake8
 
+  pip-audit:
+    name: Dépendances vulnérables (pip-audit)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Installer pip-audit
+        run: pip install pip-audit==2.10.1
+      - name: pip-audit (bloquant)
+        run: pip-audit -r requirements.txt --desc
+
   tests:
     name: Tests (pytest)
-    needs: lint
+    needs: [lint, pip-audit]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
