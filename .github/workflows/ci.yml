@@ -132,7 +132,7 @@ jobs:
         run: |
           test -s trivy.json || { echo "::error::Rapport Trivy absent"; exit 1; }
           jq -r '.Results[]? | .Target as $t | .Vulnerabilities[]?
-                 | "::error title=Trivy \(.Severity)::\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion) (\($t))"' trivy.json
+                 | "::error title=Trivy \(.Severity)::\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion) (\(.PkgPath // $t))"' trivy.json
           N=$(jq '[.Results[]?.Vulnerabilities[]?] | length' trivy.json)
           echo "Vulnérabilités CRITICAL/HIGH corrigeables : $N"
           test "$N" -eq 0

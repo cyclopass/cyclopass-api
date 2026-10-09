@@ -7,7 +7,8 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install -r requirements.txt \
+ && pip uninstall -y pip   # pip n'a rien à faire dans l'image d'exécution
 
 # ---- Étape 2 : image d'exécution, sans outils de build ----------------------
 FROM python:3.12-slim-trixie
@@ -21,6 +22,11 @@ ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     APP_ENV=production \
     DATABASE_PATH=/app/data/cyclopass.db
+
+# Pas de pip dans l'image d'exécution : ni ses dépendances embarquées
+# (signalées par Trivy), ni la possibilité d'installer quoi que ce soit.
+RUN python -m pip uninstall -y pip setuptools wheel 2>/dev/null; \
+    rm -rf /usr/local/lib/python3.12/ensurepip /usr/local/bin/pip*
 
 # Utilisateur dédié, sans shell ni droits root.
 RUN groupadd --system --gid 10001 cyclopass \
