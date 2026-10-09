@@ -1,0 +1,27 @@
+# Configuration gitleaks propre à CycloPass.
+# Revue à chaque révision de la politique de pipeline (voir docs/POLITIQUE_PIPELINE.md).
+title = "CycloPass"
+
+[extend]
+useDefault = true   # toutes les règles standard de gitleaks, plus les nôtres
+
+[[rules]]
+id = "cyclopass-meteo-token"
+description = "Token de l'API météo (préfixes mt_live_ / mt_test_)"
+regex = '''mt_(?:live|test)_[A-Za-z0-9]{16,}'''
+keywords = ["mt_live_", "mt_test_"]
+
+[[rules]]
+id = "flask-secret-key-en-dur"
+description = "SECRET_KEY Flask écrite en dur dans le code"
+regex = '''(?i)SECRET_KEY["']?\]?\s*=\s*["']([^"'\s]{8,})["']'''
+secretGroup = 1
+keywords = ["secret_key"]
+
+# Exceptions : uniquement des valeurs FACTICES, documentées et sans aucun usage réel.
+# Ajout = pull request validée par le Security Champion (procédure de dérogation).
+[allowlist]
+description = "Valeurs factices de documentation et de tests"
+regexes = [
+  '''^cle-dev-locale$''',   # README : clé d'exemple pour lancer l'API en local
+]
