@@ -31,7 +31,7 @@ def cle_api_requise(vue):
 @bp.get("/health")
 def health():
     get_db().execute("SELECT 1")
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "ok", "version": current_app.config["VERSION"]})
 
 
 @bp.get("/stations")
