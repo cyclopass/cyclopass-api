@@ -118,14 +118,24 @@ jobs:
           test "$(docker exec api id -u)" = "10001"   # jamais root
           docker rm -f api
 
-      - name: Trivy — scan de l'image (bloquant CRITICAL/HIGH corrigeables)
+      - name: Trivy — scan de l'image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ env.IMAGE }}:ci
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          exit-code: "1"
-          format: table
+          format: json
+          output: trivy.json
+          exit-code: "0"   # la décision bloquante est prise à l'étape suivante
+
+      - name: Trivy — gate (bloquant CRITICAL/HIGH corrigeables)
+        run: |
+          test -s trivy.json || { echo "::error::Rapport Trivy absent"; exit 1; }
+          jq -r '.Results[]? | .Target as $t | .Vulnerabilities[]?
+                 | "::error title=Trivy \(.Severity)::\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion) (\($t))"' trivy.json
+          N=$(jq '[.Results[]?.Vulnerabilities[]?] | length' trivy.json)
+          echo "Vulnérabilités CRITICAL/HIGH corrigeables : $N"
+          test "$N" -eq 0
 
       - name: Connexion à GHCR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
