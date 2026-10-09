@@ -49,13 +49,17 @@ def fermer_db(_exception=None):
 
 def init_db(chemin, seed=True):
     conn = connecter(chemin)
+    conn.isolation_level = None  # transactions gérées explicitement
     try:
         conn.executescript(SCHEMA)
+        # Verrou en écriture : plusieurs workers gunicorn démarrent en même temps,
+        # un seul doit insérer les données de démonstration.
+        conn.execute("BEGIN IMMEDIATE")
         vide = conn.execute("SELECT COUNT(*) FROM stations").fetchone()[0] == 0
         if seed and vide:
             conn.executemany(
                 "INSERT INTO stations (nom, ville, velos) VALUES (?, ?, ?)", STATIONS_DEMO
             )
-        conn.commit()
+        conn.execute("COMMIT")
     finally:
         conn.close()

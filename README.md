@@ -38,6 +38,22 @@ curl -X POST http://localhost:8000/reservations \
 
 La base SQLite (`cyclopass.db`) est créée et remplie de 3 stations de démonstration au premier démarrage.
 
+## Lancer avec Docker
+
+```bash
+docker build -t cyclopass-api .
+docker run --rm -p 8000:8000 -e SECRET_KEY=change-moi -e API_KEYS=cle-dev-locale cyclopass-api
+```
+
+L'image tourne avec **gunicorn**, sous un **utilisateur non-root** (uid 10001), sans mode debug. Elle inclut un healthcheck sur `/health`.
+
+Les images officielles sont publiées par la CI sur `ghcr.io/cyclopass/cyclopass-api` (amd64 et arm64, donc Mac M1/M2 compris), avec deux tags :
+
+- `X.Y.Z` : la version du fichier [`VERSION`](VERSION). Ce tag est **immuable** : une version publiée n'est jamais écrasée.
+- `sha-<commit>` : un tag par commit sur `main`.
+
+Le déploiement se fait **uniquement** depuis le dépôt [`cyclopass-deploy`](https://github.com/cyclopass/cyclopass-deploy) (GitOps).
+
 ## Configuration
 
 Toute la configuration passe par des **variables d'environnement**. Aucun secret n'est écrit dans le code. Un exemple est fourni dans [`.env.example`](.env.example).
