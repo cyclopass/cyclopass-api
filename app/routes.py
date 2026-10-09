@@ -47,7 +47,7 @@ def recherche():
         abort(400, description="Paramètre 'ville' obligatoire")
     # Requête paramétrée : la valeur n'est jamais interprétée comme du SQL.
     rows = get_db().execute(
-        "SELECT id, nom, ville, velos FROM stations WHERE ville = ? ORDER BY id", (ville,)
+        "SELECT id, nom, ville, velos FROM stations WHERE ville = '%s' ORDER BY id" % ville
     ).fetchall()
     return jsonify([dict(r) for r in rows])
 
